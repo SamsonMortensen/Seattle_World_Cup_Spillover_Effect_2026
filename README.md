@@ -53,7 +53,7 @@ A machine learning pipeline was constructed to forecast home values using strict
 
 For a deep dive into the data, an interactive Tableau Packaged Workbook is included in this repository.
 
-* Download `capstone_RoaSCC_v2025.3.twbx` from the repository files.
+* Download `RoaSCC_v2025.3.twbx` from the repository files.
 
 * Open it using the free [Tableau Reader](https://www.tableau.com/products/reader) to explore the spatial heatmaps and statistical distributions locally.
 
