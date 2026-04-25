@@ -1,0 +1,12 @@
+pandas
+requests
+scikit-learn
+scipy
+statsmodels
+geopandas
+shapely
+folium
+matplotlib
+seaborn
+supabase
+python-dotenv
