@@ -62,3 +62,7 @@ For a deep dive into the data, an interactive Tableau Packaged Workbook is inclu
 * **`01_data_engineering.ipynb`**: Contains the API extractions, string manipulation for a universal PIN generation, and GeoPandas spatial joins.
 
 * **`02_statistical_modeling.ipynb`**: Contains the baseline variance testing, OLS regression, OVB diagnosis, and the Gradient Boosting machine learning architecture.
+
+
+## References
+The academic research, spatial econometrics methodologies, and municipal data sources used to formulate the analytical approach and baseline features can be found in the [Project References](docs/references.pdf) document.
