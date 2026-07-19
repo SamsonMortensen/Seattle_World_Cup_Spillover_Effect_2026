@@ -59,10 +59,27 @@ For a deep dive into the data, an interactive Tableau Packaged Workbook is inclu
 
 **2. The Python Pipeline**
 
-* **`01_data_engineering.ipynb`**: Contains the API extractions, string manipulation for a universal PIN generation, and GeoPandas spatial joins.
+* **`code/data_engineering.ipynb`**: Contains the API extractions, string manipulation for a universal PIN generation, and GeoPandas spatial joins.
 
-* **`02_statistical_modeling.ipynb`**: Contains the baseline variance testing, OLS regression, OVB diagnosis, and the Gradient Boosting machine learning architecture.
+* **`code/statistical_modeling.ipynb`**: Contains the baseline variance testing, OLS regression, OVB diagnosis, and the Gradient Boosting machine learning architecture.
 
 
 ## References
 The academic research, spatial econometrics methodologies, and municipal data sources used to formulate the analytical approach and baseline features can be found in the [Project References](docs/references.pdf) document.
+
+## Data Sources
+To reproduce this pipeline, the following raw data inputs are required:
+
+1. **King County Assessor Data** (CSV)
+   - `rp_sale.csv` - Real Property Sales
+   - `residential.csv` - Residential Building Data
+   - `parcel.csv` - Parcel Data
+2. **Seattle Open Data**
+   - `Seattle_Noise_Dispatch_Log.csv` (Pulled via API in `data_engineering.ipynb`)
+   - `coords.csv` - Property coordinates
+   - `seattle_police_beats.geojson` - Police beat boundaries
+3. **WSDOT & FEMA**
+   - `wsdot.csv` - Freight corridor classifications
+   - `nri.csv` / `fema_nri_tracts.shp` - FEMA National Risk Index
+
+> Note: Due to file size limits, the raw datasets are not committed to the repository. Please download them from their respective municipal sources.
