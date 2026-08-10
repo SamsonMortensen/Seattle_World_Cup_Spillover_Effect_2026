@@ -68,18 +68,56 @@ For a deep dive into the data, an interactive Tableau Packaged Workbook is inclu
 The academic research, spatial econometrics methodologies, and municipal data sources used to formulate the analytical approach and baseline features can be found in the [Project References](docs/references.pdf) document.
 
 ## Data Sources
-To reproduce this pipeline, the following raw data inputs are required:
 
-1. **King County Assessor Data** (CSV)
-   - `rp_sale.csv` - Real Property Sales
-   - `residential.csv` - Residential Building Data
-   - `parcel.csv` - Parcel Data
-2. **Seattle Open Data**
-   - `Seattle_Noise_Dispatch_Log.csv` (Pulled via API in `data_engineering.ipynb`)
-   - `coords.csv` - Property coordinates
-   - `seattle_police_beats.geojson` - Police beat boundaries
-3. **WSDOT & FEMA**
-   - `wsdot.csv` - Freight corridor classifications
-   - `nri.csv` / `fema_nri_tracts.shp` - FEMA National Risk Index
+The raw inputs total roughly 1.9 GB, so they are not committed here. Both notebooks
+read and write **relative to their working directory** — put every file listed below
+in the directory you launch Jupyter from, then run `code/data_engineering.ipynb`
+first and `code/statistical_modeling.ipynb` second.
 
-> Note: Due to file size limits, the raw datasets are not committed to the repository. Please download them from their respective municipal sources.
+| File | Source | Notes |
+| --- | --- | --- |
+| `rp_sale.csv` | [King County Assessor — Data Download](https://info.kingcounty.gov/assessor/DataDownload/default.aspx), table `EXTR_RPSale` | Columns used: `Major`, `Minor`, `SalePrice`, `DocumentDate`. Read with `encoding='latin1'`. |
+| `residential.csv` | King County Assessor, table `EXTR_ResBldg` | Columns used: `Major`, `Minor`, `SqFtTotLiving`, `NbrLivingUnits`, `YrBuilt`. |
+| `parcel.csv` | King County Assessor, table `EXTR_Parcel` | Columns used: `Major`, `Minor`, `CurrentZoning`. |
+| `coords.csv` | [King County GIS Open Data — Address Points](https://gis-kingcounty.opendata.arcgis.com/) | E911 site-address points. Columns used: `PIN`, `LAT`, `LON`, `x`, `y`. Coordinates are King County State Plane (EPSG:2285); the notebooks reproject to EPSG:4326. |
+| `seattle_police_beats.geojson` | [Seattle GeoData — SPD Beats](https://data.seattle.gov/) | Polygon boundaries. Join key `beat`. |
+| Seattle 911 dispatch log | [Seattle Open Data, dataset `33kz-ixgy`](https://data.seattle.gov/resource/33kz-ixgy.json) | Pulled live by `data_engineering.ipynb`. **See the reproducibility note below.** |
+| `wsdot.csv` | Attribute export of the WSDOT FGTS truck-corridor layer | Used only by the statewide Welch's t-test. Columns used: `FGTSClass`, `CountyName`. |
+| `wsdot_freight_corridors.geojson` | [WSDOT FGTS — Truck Corridors (ArcGIS REST)](https://data.wsdot.wa.gov/arcgis/rest/services/Shared/FreightSystemData/MapServer/0) | Geometry for the freight spatial join. Run `python code/fetch_wsdot_freight.py` to download it. |
+| `nri.csv` | [FEMA National Risk Index — Data Resources](https://hazards.fema.gov/nri/data-resources) | County-level NRI table. Columns used: `STATE`, `COUNTY`, `RISK_SCORE`. |
+
+### `wsdot_freight_corridors.geojson`
+
+This file defines `Heavy_Freight_Zone`, the model's only infrastructural control, and
+its absence is what caused commit `b33fa92` to substitute a hardcoded list of police
+beats. Fetch it with:
+
+```bash
+python code/fetch_wsdot_freight.py
+```
+
+Expected schema: a `FeatureCollection` of `LineString` features in CRS84, with the
+FGTS attributes on each feature. The notebook uses `FGTSClass` only, filtering to the
+heavy-freight classes `T-1` and `T-2`, reprojecting to EPSG:2285 so distances are in
+feet, and buffering 1,000 ft.
+
+The committed results were produced against the FGTS publication dated `2021-12-31`
+(33,550 features; 334 `T-1` and 720 `T-2` segments). WSDOT republishes the FGTS every
+two years, and the current publication reclassifies considerably more mileage as heavy
+freight (612 `T-1`, 1,508 `T-2`). In practice this barely moves the analysis — both
+vintages flag 25.9% of the modeled parcels and leave the freight coefficient
+insignificant — but the fetch script prints a warning when the layer it downloads does
+not match the vintage behind the committed numbers.
+
+### Reproducibility note: the 911 pull is a moving window
+
+`data_engineering.ipynb` requests the 50,000 most recent dispatch records
+(`$order=cad_event_original_time_queued DESC`), so **it returns different data every
+time it runs** and `total_noise_dispatches` is not stable across runs. This is the
+mechanism behind the drift this repository has already experienced once.
+
+The snapshot backing the committed CSVs and figures is checked in under
+`data/Seattle_Noise_Dispatch_Log.csv` and `data/Seattle_Beat_Financial_Waste.csv`. To
+reproduce the committed numbers exactly, copy those two files into your working
+directory and skip the API cell; to refresh the analysis, run the API cell and accept
+that every downstream figure will move.
